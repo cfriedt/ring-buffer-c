@@ -12,7 +12,11 @@ PACKED_IAR struct PACKED_GNU _ring_buffer;
 typedef struct _ring_buffer ring_buffer_t;
 
 PACKED_IAR struct PACKED_GNU _ring_buffer {
+#ifdef __cplusplus
 	unsigned         capacity;
+#else
+	const unsigned   capacity;
+#endif
 	unsigned         head;
 	unsigned         len;
 	// extract items from the head of the buffer without advancing the head
