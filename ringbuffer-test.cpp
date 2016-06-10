@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include <iostream>
 #include <algorithm>
 
 extern "C" {
@@ -434,6 +435,71 @@ TEST_F( RingBufferTest, RingBufferWriteTestMoreThanCap ) {
 //
 // Tests for ring_buffer_t::send()
 //
+
+TEST_F( RingBufferTest, RingBufferSend ) {
+
+	int i;
+
+	uint8_t buf[ max_buf_len ];
+	ring_buffer_t _in;
+	ring_buffer_t *in;
+	ring_buffer_t *out;
+
+	in = &_in;
+
+	memcpy( buf, buf_template, max_buf_len );
+
+	ring_buffer_init( in, max_buf_len / 2, buf );
+
+	unsigned expected_head_out;
+	unsigned actual_head_out;
+	unsigned expected_head_in;
+	unsigned actual_head_in;
+
+	unsigned expected_len_out;
+	unsigned actual_len_out;
+	unsigned expected_len_in;
+	unsigned actual_len_in;
+
+	int expected_r;
+	int actual_r;
+
+	for( i = 0; i < n; i++ ) {
+
+		in->reset( in );
+		in->len = in->capacity / 2;
+		in->head = in->capacity / 4;
+
+		out = &rb[ i ];
+
+		out->len = std::min( 2, (int) out->capacity );
+		out->head = out->capacity / 2;
+
+		expected_r = std::min( out->available( out ), in->size( in ) );
+
+		expected_head_out = out->head;
+		expected_head_in = 0 == in->capacity ? in->head : ( in->head + expected_r ) % in->capacity;
+
+		expected_len_out = out->len + expected_r;
+		expected_len_in = in->len - expected_r;
+
+		actual_r = out->send( out, in );
+
+		actual_head_out = out->head;
+		actual_head_in = in->head;
+
+		actual_len_out = out->len;
+		actual_len_in = in->len;
+
+		EXPECT_EQ( expected_r, actual_r );
+
+		EXPECT_EQ( expected_head_out, actual_head_out );
+		EXPECT_EQ( expected_head_in, actual_head_in );
+
+		EXPECT_EQ( expected_len_out, actual_len_out );
+		EXPECT_EQ( expected_len_in, actual_len_in );
+	}
+}
 
 //
 // Tests for ring_buffer_t::skip()

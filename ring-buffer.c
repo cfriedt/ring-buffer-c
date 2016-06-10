@@ -47,11 +47,12 @@ out:
 static int      ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_read( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_write( ring_buffer_t *rb, void *data, unsigned data_len );
+static int      ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in );
 static int      ring_buffer_skip( ring_buffer_t *rb, unsigned data_len );
 static unsigned ring_buffer_size( ring_buffer_t *rb );
 static unsigned ring_buffer_available( ring_buffer_t *rb );
 static void     ring_buffer_reset( ring_buffer_t *rb );
-static void ring_buffer_realign( ring_buffer_t *rb );
+static void     ring_buffer_realign( ring_buffer_t *rb );
 
 int ring_buffer_init( ring_buffer_t *rb, unsigned capacity, void *buffer ) {
 	int r;
@@ -68,6 +69,7 @@ int ring_buffer_init( ring_buffer_t *rb, unsigned capacity, void *buffer ) {
 	rb->peek = ring_buffer_peek;
 	rb->read = ring_buffer_read;
 	rb->write = ring_buffer_write;
+	rb->send = ring_buffer_send;
 	rb->skip = ring_buffer_skip;
 	rb->size = ring_buffer_size;
 	rb->available = ring_buffer_available;
@@ -152,8 +154,41 @@ static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in ) {
 
 	int r;
 
-	r = -ENOSYS;
+	unsigned orig_head_in;
+	unsigned orig_head_out;
 
+	if ( NULL == out || NULL == in ) {
+		r = -EINVAL;
+		goto out;
+	}
+
+	r = min( in->size( in ), out->available( out ) );
+	if ( 0 == r ) {
+		goto out;
+	}
+
+	orig_head_out = out->head;
+	orig_head_in = in->head;
+
+	// XXX: @CF: FIXME: Realigning both buffers simplifies the op, but is not optimized
+	out->realign( out );
+	in->realign( in );
+
+	memcpy( & out->buffer[ out->len ], & in->buffer[ 0 ], r );
+
+	// update output length
+	out->len += r;
+
+	// XXX: @CF: FIXME: Realigning requires that both heads are put back where they came from
+	array_shift_u8( out->buffer, out->capacity, orig_head_out );
+	out->head = orig_head_out;
+	array_shift_u8( in->buffer, in->capacity, orig_head_in );
+	in->head = orig_head_in;
+
+	// advance input by r
+	in->skip( in, r );
+
+out:
 	return r;
 }
 
@@ -211,7 +246,11 @@ static void ring_buffer_realign( ring_buffer_t *rb ) {
 		goto out;
 	}
 
-	array_shift_u8( rb->buffer, rb->len, rb->capacity - rb->head );
+	if ( 0 == rb->head ) {
+		goto out;
+	}
+
+	array_shift_u8( rb->buffer, rb->capacity, rb->capacity + ( rb->capacity - rb->head ) );
 
 	rb->head = 0;
 
