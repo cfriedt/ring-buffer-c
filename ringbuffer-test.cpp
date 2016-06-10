@@ -666,3 +666,57 @@ TEST_F( RingBufferTest, RingBufferReset ) {
 	}
 }
 
+//
+// Tests for ring_buffer_t::realign()
+//
+
+static void _do_realign_test( ring_buffer_t *rb, unsigned head ) {
+	static const uint8_t *expected_val = RingBufferTest::buf_template;
+	static const unsigned expected_head = 0;
+
+	unsigned original_head;
+
+	unsigned actual_head;
+	unsigned actual_len;
+
+	uint8_t *actual_val;
+
+	int j;
+
+	rb->len = rb->capacity;
+
+	rb->head = head;
+
+	original_head = rb->head;
+
+	rb->realign( rb );
+
+	actual_head = rb->head;
+	actual_len = rb->len;
+
+	EXPECT_EQ( expected_head, actual_head );
+
+	actual_val = (uint8_t *) rb->buffer;
+
+	if ( rb->len > 0 ) {
+		for( j = 0; j < rb->len; j++ ) {
+			EXPECT_EQ( expected_val[ ( original_head + j ) % rb->capacity ], actual_val[ j ] );
+		}
+	}
+}
+
+// realign an already-realigned buffer
+TEST_F( RingBufferTest, RingBufferRealignZero ) {
+	int i;
+	for( i = 0; i < n; i++ ) {
+		_do_realign_test( &rb[ i ], 0 );
+	}
+}
+
+// realign a buffer with the head half-way
+TEST_F( RingBufferTest, RingBufferRealignHalf ) {
+	int i;
+	for( i = 0; i < n; i++ ) {
+		_do_realign_test( &rb[ i ], rb[ i ].capacity / 2 );
+	}
+}

@@ -33,6 +33,8 @@ PACKED_IAR struct PACKED_GNU _ring_buffer {
 	unsigned       (*available)( ring_buffer_t *rb );
 	// set the buffer's head and length to zero
 	void           (*reset)( ring_buffer_t *rb );
+	// circularly shift the underling buffer so that the head is in the 0th position
+	void           (*realign)( ring_buffer_t *rb );
 	void            *buffer;
 };
 
