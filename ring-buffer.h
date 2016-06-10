@@ -16,7 +16,7 @@ PACKED_IAR struct PACKED_GNU _ring_buffer {
 	unsigned         head;
 	unsigned         len;
 	// extract items from the head of the buffer without advancing the head
-	int            (*peak)( ring_buffer_t *rb, void *data, unsigned data_len );
+	int            (*peek)( ring_buffer_t *rb, void *data, unsigned data_len );
 	// extract items from the head of the buffer, advancing the head
 	int            (*read)( ring_buffer_t *rb, void *data, unsigned data_len );
 	// inject items at the tail of the buffer, increasing its length

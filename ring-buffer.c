@@ -42,7 +42,7 @@ out:
 	return r;
 }
 
-static int      ring_buffer_peak( ring_buffer_t *rb, void *data, unsigned data_len );
+static int      ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_read( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_write( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_skip( ring_buffer_t *rb, unsigned data_len );
@@ -62,7 +62,7 @@ int ring_buffer_init( ring_buffer_t *rb, unsigned capacity, void *buffer ) {
 	rb->head = 0;
 	rb->len = 0;
 
-	rb->peak = ring_buffer_peak;
+	rb->peek = ring_buffer_peek;
 	rb->read = ring_buffer_read;
 	rb->write = ring_buffer_write;
 	rb->skip = ring_buffer_skip;
@@ -78,7 +78,7 @@ out:
 	return r;
 }
 
-static int ring_buffer_peak( ring_buffer_t *rb, void *data, unsigned data_len ) {
+static int ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len ) {
 	int r;
 	unsigned t1, t2;
 
@@ -106,7 +106,7 @@ out:
 
 static int ring_buffer_read( ring_buffer_t *rb, void *data, unsigned data_len ) {
 	int r;
-	r = ring_buffer_peak( rb, data, data_len );
+	r = ring_buffer_peek( rb, data, data_len );
 	if ( r > 0 ) {
 		ring_buffer_skip( rb, r );
 	}

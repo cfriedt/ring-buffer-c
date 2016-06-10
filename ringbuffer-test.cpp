@@ -74,7 +74,7 @@ static void ring_buffer_valid_after_init( ring_buffer_t *rb, unsigned expected_c
 	EXPECT_EQ( expected_head, rb->head );
 	EXPECT_EQ( expected_len, rb->len );
 
-	ASSERT_NE( (void *)NULL, rb->peak );
+	ASSERT_NE( (void *)NULL, rb->peek );
 	ASSERT_NE( (void *)NULL, rb->read );
 	ASSERT_NE( (void *)NULL, rb->write );
 	ASSERT_NE( (void *)NULL, rb->skip );
@@ -122,7 +122,7 @@ TEST_F( RingBufferTest, RingBufferInitTest ) {
 }
 
 // XXX: @CF: FIXME: probably can do less here, since there is partial duplication of the skip tests
-static void _do_read_test( bool peak, ring_buffer_t *rb, int expected_r ) {
+static void _do_read_test( bool peek, ring_buffer_t *rb, int expected_r ) {
 
 	const uint8_t *expected_val = RingBufferTest::buf_template;
 
@@ -141,8 +141,8 @@ static void _do_read_test( bool peak, ring_buffer_t *rb, int expected_r ) {
 	original_head = rb->head;
 
 	actual_val_len = 0 == rb->len ? 1 : expected_r;
-	if ( peak || 0 == expected_r ) {
-		// for peak operations, the length and head MUST NOT CHANGE!!
+	if ( peek || 0 == expected_r ) {
+		// for peek operations, the length and head MUST NOT CHANGE!!
 		expected_len = rb->len;
 		expected_head = rb->head;
 	} else {
@@ -154,8 +154,8 @@ static void _do_read_test( bool peak, ring_buffer_t *rb, int expected_r ) {
 		}
 	}
 
-	if ( peak ) {
-		actual_r = rb->peak( rb, actual_val, actual_val_len );
+	if ( peek ) {
+		actual_r = rb->peek( rb, actual_val, actual_val_len );
 	} else {
 		actual_r = rb->read( rb, actual_val, actual_val_len );
 	}
@@ -173,7 +173,7 @@ static void _do_read_test( bool peak, ring_buffer_t *rb, int expected_r ) {
 	}
 
 }
-static void do_peak_test( ring_buffer_t *rb, int expected_r ) {
+static void do_peek_test( ring_buffer_t *rb, int expected_r ) {
 	_do_read_test( true, rb, expected_r );
 }
 static void do_read_test( ring_buffer_t *rb, int expected_r ) {
@@ -181,48 +181,48 @@ static void do_read_test( ring_buffer_t *rb, int expected_r ) {
 }
 
 //
-// Tests for ring_buffer_t::peak()
+// Tests for ring_buffer_t::peek()
 //
 
-// try to peak at 0 elements
+// try to peek at 0 elements
 TEST_F( RingBufferTest, RingBufferPeakTestEmpty ) {
 	static const int expected_r = 0;
-	do_peak_test( &rb[ 0 ], expected_r );
+	do_peek_test( &rb[ 0 ], expected_r );
 }
 
-// peak the 0th element
+// peek the 0th element
 TEST_F( RingBufferTest, RingBufferPeakTestOne ) {
 	int i;
 	int expected_r;
 	for( i = 0; i < n; i++ ) {
 		rb[ i ].len = rb[ i ].capacity;
 		expected_r = std::min( 1, (int) rb[ i ].len );
-		do_peak_test( &rb[ i ], expected_r );
+		do_peek_test( &rb[ i ], expected_r );
 	}
 }
 
-// peak at all of the elements starting from the 0th
+// peek at all of the elements starting from the 0th
 TEST_F( RingBufferTest, RingBufferPeakTestAll ) {
 	int i;
 	for( i = 0; i < n; i++ ) {
 		rb[ i ].len = rb[ i ].capacity;
 		int expected_r = rb[ i ].capacity;
-		do_peak_test( &rb[ i ], expected_r );
+		do_peek_test( &rb[ i ], expected_r );
 	}
 }
 
-// peak at all elements (head of buffer is in the middle rather than at 0)
+// peek at all elements (head of buffer is in the middle rather than at 0)
 TEST_F( RingBufferTest, RingBufferPeakTestWrap ) {
 	int i;
 	for( i = 0; i < n; i++ ) {
 		rb[ i ].len = rb[ i ].capacity;
 		rb[ i ].head = rb[ i ].len / 2;
 		int expected_r = rb[ i ].capacity;
-		do_peak_test( &rb[ i ], expected_r );
+		do_peek_test( &rb[ i ], expected_r );
 	}
 }
 
-// request to peak at len <= n <= cap elements
+// request to peek at len <= n <= cap elements
 TEST_F( RingBufferTest, RingBufferPeakTestMoreThanLen ) {
 	int expected_r;
 	int actual_r;
@@ -231,12 +231,12 @@ TEST_F( RingBufferTest, RingBufferPeakTestMoreThanLen ) {
 	for( i = 0; i < n; i++ ) {
 		rb[ i ].len = rb[ i ].capacity / 2;
 		expected_r = rb[ i ].len;
-		actual_r = rb[ i ].peak( &rb[ i ], actual_val, expected_r + 1 );
+		actual_r = rb[ i ].peek( &rb[ i ], actual_val, expected_r + 1 );
 		EXPECT_EQ( expected_r, actual_r );
 	}
 }
 
-// request to peak at len <= cap <= n elements
+// request to peek at len <= cap <= n elements
 TEST_F( RingBufferTest, RingBufferPeakTestMoreThanCap ) {
 	int expected_r;
 	int actual_r;
@@ -245,7 +245,7 @@ TEST_F( RingBufferTest, RingBufferPeakTestMoreThanCap ) {
 	for( i = 0; i < n; i++ ) {
 		rb[ i ].len = rb[ i ].capacity;
 		expected_r = rb[ i ].len;
-		actual_r = rb[ i ].peak( &rb[ i ], actual_val, expected_r + 1 );
+		actual_r = rb[ i ].peek( &rb[ i ], actual_val, expected_r + 1 );
 		EXPECT_EQ( expected_r, actual_r );
 	}
 }
