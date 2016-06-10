@@ -144,6 +144,15 @@ out:
 	return r;
 }
 
+static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in ) {
+
+	int r;
+
+	r = -ENOSYS;
+
+	return r;
+}
+
 static int ring_buffer_skip( ring_buffer_t *rb, unsigned data_len ) {
 	int r;
 

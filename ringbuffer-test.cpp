@@ -432,6 +432,10 @@ TEST_F( RingBufferTest, RingBufferWriteTestMoreThanCap ) {
 }
 
 //
+// Tests for ring_buffer_t::send()
+//
+
+//
 // Tests for ring_buffer_t::skip()
 //
 
