@@ -7,6 +7,8 @@
 
 #include "minmax.h"
 
+#include "array-utils.h"
+
 // same as ring_buffer_available()
 static inline unsigned rbavail( ring_buffer_t *rb ) {
 	unsigned r;
@@ -49,6 +51,7 @@ static int      ring_buffer_skip( ring_buffer_t *rb, unsigned data_len );
 static unsigned ring_buffer_size( ring_buffer_t *rb );
 static unsigned ring_buffer_available( ring_buffer_t *rb );
 static void     ring_buffer_reset( ring_buffer_t *rb );
+static void ring_buffer_realign( ring_buffer_t *rb );
 
 int ring_buffer_init( ring_buffer_t *rb, unsigned capacity, void *buffer ) {
 	int r;
@@ -69,6 +72,7 @@ int ring_buffer_init( ring_buffer_t *rb, unsigned capacity, void *buffer ) {
 	rb->size = ring_buffer_size;
 	rb->available = ring_buffer_available;
 	rb->reset = ring_buffer_reset;
+	rb->realign = ring_buffer_realign;
 
 	rb->buffer = buffer;
 
@@ -188,6 +192,20 @@ static void ring_buffer_reset( ring_buffer_t *rb ) {
 		goto out;
 	}
 	ring_buffer_init( rb, rb->capacity, rb->buffer );
+out:
+	return;
+}
+
+static void ring_buffer_realign( ring_buffer_t *rb ) {
+
+	if ( NULL == rb ) {
+		goto out;
+	}
+
+	array_shift_u8( rb->buffer, rb->len, rb->capacity - rb->head );
+
+	rb->head = 0;
+
 out:
 	return;
 }
