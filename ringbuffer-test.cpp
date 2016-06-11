@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 
-#include <iostream>
 #include <algorithm>
 
 extern "C" {
