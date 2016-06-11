@@ -25,6 +25,8 @@ PACKED_IAR struct PACKED_GNU _ring_buffer {
 	int            (*read)( ring_buffer_t *rb, void *data, unsigned data_len );
 	// inject items at the tail of the buffer, increasing its length
 	int            (*write)( ring_buffer_t *rb, void *data, unsigned data_len );
+	// like write, except take the input from another ring buffer instead of from an array
+	int            (*send)( ring_buffer_t *rb, ring_buffer_t *input );
 	// advance the head of the buffer, decreasing its length
 	int            (*skip)( ring_buffer_t *rb, unsigned data_len );
 	// the length of the buffer
