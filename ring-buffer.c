@@ -103,7 +103,7 @@ static int ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len ) 
 		t2 = r - t1;
 		memcpy( & ( (uint8_t *) data )[ t1 ], & rb->buffer[ 0 ], t2 );
 	} else {
-		memcpy( data, rb->buffer, r );
+		memcpy( data, & rb->buffer[ rb->head ], r );
 	}
 
 out:
