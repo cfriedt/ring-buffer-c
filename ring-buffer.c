@@ -47,7 +47,7 @@ out:
 static int      ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_read( ring_buffer_t *rb, void *data, unsigned data_len );
 static int      ring_buffer_write( ring_buffer_t *rb, void *data, unsigned data_len );
-static int      ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in );
+static int      ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in, unsigned data_len );
 static int      ring_buffer_skip( ring_buffer_t *rb, unsigned data_len );
 static unsigned ring_buffer_size( ring_buffer_t *rb );
 static unsigned ring_buffer_available( ring_buffer_t *rb );
@@ -150,7 +150,7 @@ out:
 	return r;
 }
 
-static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in ) {
+static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in, unsigned data_len ) {
 
 	int r;
 
@@ -163,6 +163,7 @@ static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in ) {
 	}
 
 	r = min( in->size( in ), out->available( out ) );
+	r = min( r, data_len );
 	if ( 0 == r ) {
 		goto out;
 	}

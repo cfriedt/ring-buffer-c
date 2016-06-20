@@ -482,7 +482,7 @@ TEST_F( RingBufferTest, RingBufferSend ) {
 		expected_len_out = out->len + expected_r;
 		expected_len_in = in->len - expected_r;
 
-		actual_r = out->send( out, in );
+		actual_r = out->send( out, in, (unsigned)-1 );
 
 		actual_head_out = out->head;
 		actual_head_in = in->head;
