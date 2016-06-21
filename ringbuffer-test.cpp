@@ -462,6 +462,11 @@ TEST_F( RingBufferTest, RingBufferSend ) {
 
 	int expected_r;
 	int actual_r;
+	uint8_t *actual_val;
+	uint8_t *expected_val;
+
+	unsigned original_tail_out;
+	unsigned original_head_in;
 
 	for( i = 0; i < n; i++ ) {
 
@@ -473,6 +478,9 @@ TEST_F( RingBufferTest, RingBufferSend ) {
 
 		out->len = std::min( 2, (int) out->capacity );
 		out->head = out->capacity / 2;
+
+		original_tail_out = out->head + out->len;
+		original_head_in = in->head;
 
 		expected_r = std::min( out->available( out ), in->size( in ) );
 
@@ -497,6 +505,14 @@ TEST_F( RingBufferTest, RingBufferSend ) {
 
 		EXPECT_EQ( expected_len_out, actual_len_out );
 		EXPECT_EQ( expected_len_in, actual_len_in );
+		if ( actual_r ) {
+			expected_val = (uint8_t *)in->buffer;
+			actual_val = (uint8_t *)out->buffer;
+			// verify data
+			for( i = 0; i < actual_r; i++ ) {
+				EXPECT_EQ( expected_val[ ( original_head_in + i ) % in->capacity ], actual_val[ ( original_tail_out + i ) % out->capacity ] );
+			}
+		}
 	}
 }
 
