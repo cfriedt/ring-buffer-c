@@ -249,7 +249,7 @@ static void ring_buffer_realign( ring_buffer_t *rb ) {
 		goto out;
 	}
 
-	array_shift_u8( rb->buffer, rb->capacity, rb->capacity + ( rb->capacity - rb->head ) );
+	array_shift_u8( rb->buffer, rb->capacity, rb->capacity - rb->head );
 
 	rb->head = 0;
 
