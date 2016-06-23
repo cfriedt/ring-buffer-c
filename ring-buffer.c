@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #include "ring-buffer.h"
 
@@ -29,7 +28,7 @@ out:
 static inline unsigned rbtail( ring_buffer_t *rb ) {
 	unsigned r;
 
-	if ( NULL == rb ) {
+	if ( NULL == rb || 0 == rb->capacity ) {
 		r = 0;
 		goto out;
 	}
@@ -54,7 +53,7 @@ int ring_buffer_init( ring_buffer_t *rb, unsigned capacity, void *buffer ) {
 	int r;
 
 	if ( NULL == rb || NULL == buffer ) {
-		r = -EINVAL;
+		r = -1;
 		goto out;
 	}
 
@@ -85,7 +84,7 @@ static int ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len ) 
 	unsigned t1, t2;
 
 	if ( NULL == rb || NULL == data ) {
-		r = -EINVAL;
+		r = -1;
 		goto out;
 	}
 
@@ -95,11 +94,11 @@ static int ring_buffer_peek( ring_buffer_t *rb, void *data, unsigned data_len ) 
 	}
 	if ( rb->head + r >= rb->capacity ) {
 		t1 = rb->capacity - rb->head;
-		memcpy( data, & rb->buffer[ rb->head ], t1 );
+		memcpy( data, & ( (uint8_t *)rb->buffer ) [ rb->head ], t1 );
 		t2 = r - t1;
-		memcpy( & ( (uint8_t *) data )[ t1 ], & rb->buffer[ 0 ], t2 );
+		memcpy( & ( (uint8_t *) data )[ t1 ], & ( (uint8_t *)rb->buffer )[ 0 ], t2 );
 	} else {
-		memcpy( data, & rb->buffer[ rb->head ], r );
+		memcpy( data, & ( (uint8_t *)rb->buffer )[ rb->head ], r );
 	}
 
 out:
@@ -121,7 +120,7 @@ static int ring_buffer_write( ring_buffer_t *rb, void *data, unsigned data_len )
 	unsigned t1, t2;
 
 	if ( NULL == rb || NULL == data ) {
-		r = -EINVAL;
+		r = -1;
 		goto out;
 	}
 
@@ -133,11 +132,11 @@ static int ring_buffer_write( ring_buffer_t *rb, void *data, unsigned data_len )
 	tail = rbtail( rb );
 	if ( tail + r >= rb->capacity ) {
 		t1 = rb->capacity - tail;
-		memcpy( & rb->buffer[ tail ], data, t1 );
+		memcpy( & ( (uint8_t *)rb->buffer )[ tail ], data, t1 );
 		t2 = r - t1;
-		memcpy( & rb->buffer[ 0 ], & ( (uint8_t *) data )[ t1 - 1 ],  t2 );
+		memcpy( & ( (uint8_t *)rb->buffer )[ 0 ], & ( (uint8_t *) data )[ t1 - 1 ],  t2 );
 	} else {
-		memcpy( & rb->buffer[ tail ], data, r );
+		memcpy( & ( (uint8_t *)rb->buffer )[ tail ], data, r );
 	}
 
 	rb->len += r;
@@ -155,7 +154,7 @@ static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in, unsigned dat
 	unsigned tail_out;
 
 	if ( NULL == out || NULL == in ) {
-		r = -EINVAL;
+		r = -1;
 		goto out;
 	}
 
@@ -173,7 +172,7 @@ static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in, unsigned dat
 	in->realign( in );
 
 	tail_out = rbtail( out );
-	memcpy( & out->buffer[ tail_out ], & in->buffer[ 0 ], r );
+	memcpy( & ( (uint8_t *)out->buffer )[ tail_out ], & ( (uint8_t *)in->buffer )[ 0 ], r );
 
 	// update output length
 	out->len += r;
@@ -195,7 +194,7 @@ static int ring_buffer_skip( ring_buffer_t *rb, unsigned data_len ) {
 	int r;
 
 	if ( NULL == rb ) {
-		r = -EINVAL;
+		r = -1;
 		goto out;
 	}
 
