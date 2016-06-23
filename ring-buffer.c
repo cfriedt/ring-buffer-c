@@ -25,7 +25,7 @@ out:
 	return r;
 }
 
-// the index of the tail element (inclusive)
+// the index of the next writable element
 static inline unsigned rbtail( ring_buffer_t *rb ) {
 	unsigned r;
 
@@ -34,11 +34,7 @@ static inline unsigned rbtail( ring_buffer_t *rb ) {
 		goto out;
 	}
 
-	if ( 0 == rb->len ) {
-		r = rb->head;
-	} else {
-		r = ( rb->head + rb->len - 1 ) % rb->capacity;
-	}
+	r = ( rb->head + rb->len ) % rb->capacity;
 
 out:
 	return r;
@@ -177,7 +173,7 @@ static int ring_buffer_send( ring_buffer_t *out, ring_buffer_t *in, unsigned dat
 	in->realign( in );
 
 	tail_out = rbtail( out );
-	memcpy( & out->buffer[ tail_out + 1 ], & in->buffer[ 0 ], r );
+	memcpy( & out->buffer[ tail_out ], & in->buffer[ 0 ], r );
 
 	// update output length
 	out->len += r;

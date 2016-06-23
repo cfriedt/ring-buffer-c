@@ -431,6 +431,25 @@ TEST_F( RingBufferTest, RingBufferWriteTestMoreThanCap ) {
 	}
 }
 
+// write twice, len1 + len2, such that len1 + len2 <= cap
+TEST_F( RingBufferTest, RingBufferWriteTwiceTest ) {
+	int expected_r;
+	int actual_r;
+	unsigned write_size;
+	uint8_t actual_val[ max_buf_len ];
+	int i;
+	for( i = 0; i < n; i++ ) {
+		rb[ i ].len = 0;
+		write_size = rb[ i ].capacity / 2;
+		expected_r = 2 * write_size;
+		actual_r =
+			0
+			+ rb[ i ].write( &rb[ i ], actual_val, write_size )
+			+ rb[ i ].write( &rb[ i ], actual_val, write_size );
+		EXPECT_EQ( expected_r, actual_r );
+	}
+}
+
 //
 // Tests for ring_buffer_t::send()
 //
@@ -479,7 +498,7 @@ TEST_F( RingBufferTest, RingBufferSend ) {
 		out->len = std::min( 2, (int) out->capacity );
 		out->head = out->capacity / 2;
 
-		original_tail_out = out->head + out->len;
+		original_tail_out = 0 == out->capacity ? 0 : ( out->head + out->len ) % out->capacity;
 		original_head_in = in->head;
 
 		expected_r = std::min( out->available( out ), in->size( in ) );
@@ -510,7 +529,9 @@ TEST_F( RingBufferTest, RingBufferSend ) {
 			actual_val = (uint8_t *)out->buffer;
 			// verify data
 			for( i = 0; i < actual_r; i++ ) {
-				EXPECT_EQ( expected_val[ ( original_head_in + i ) % in->capacity ], actual_val[ ( original_tail_out + i ) % out->capacity ] );
+				uint8_t ev = expected_val[ ( original_head_in + i ) % in->capacity ];
+				uint8_t av = actual_val[ ( original_tail_out + i ) % out->capacity ];
+				EXPECT_EQ( ev, av );
 			}
 		}
 	}
