@@ -134,7 +134,7 @@ static int ring_buffer_write( ring_buffer_t *rb, void *data, unsigned data_len )
 		t1 = rb->capacity - tail;
 		memcpy( & ( (uint8_t *)rb->buffer )[ tail ], data, t1 );
 		t2 = r - t1;
-		memcpy( & ( (uint8_t *)rb->buffer )[ 0 ], & ( (uint8_t *) data )[ t1 - 1 ],  t2 );
+		memcpy( & ( (uint8_t *)rb->buffer )[ 0 ], & ( (uint8_t *) data )[ t1 ],  t2 );
 	} else {
 		memcpy( & ( (uint8_t *)rb->buffer )[ tail ], data, r );
 	}
